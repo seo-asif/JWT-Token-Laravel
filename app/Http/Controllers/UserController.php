@@ -26,7 +26,6 @@ class UserController extends Controller
                 'status' => 'success',
                 'msg'    => 'user created successfully',
             ], 201);
-
         } catch (Exception $error) {
             return response()->json([
                 'status' => 'failed',
@@ -34,7 +33,6 @@ class UserController extends Controller
                 'reason' => $error->getMessage(),
             ], 200);
         }
-
     }
 
     public function login(Request $request)
@@ -58,7 +56,6 @@ class UserController extends Controller
                 'reason' => $error->getMessage(),
             ], 401);
         }
-
     }
 
     public function sendOTPCode(Request $request)
@@ -75,12 +72,15 @@ class UserController extends Controller
                 return response()->json([
                     'status' => 'success',
                     'msg'    => 'OTP send successfully',
+                    'otp'    => $otp,
 
                 ], 200);
-
-            } 
-            
-
+            } else {
+                return response()->json([
+                    'status' => 'failed',
+                    'msg'    => 'User with the provided email not found.',
+                ], 200);
+            }
         } catch (Exception $error) {
             return response()->json([
                 'status' => 'failed',
@@ -88,6 +88,30 @@ class UserController extends Controller
                 'reason' => $error->getMessage(),
             ], 200);
         }
+    }
 
+    public function verifyOTPCode(Request $request)
+    {
+        $email = $request->input('email');
+        $otp = $request->input('otp');
+
+        $count = User::where('email', $email)->where('otp', $otp)->count();
+
+        if ($count == 1) {
+            USER::where('email', $email)->update(['otp' => "0"]);
+
+            $token = JWTToken::createTokenForSetPassword($email);
+
+            return response()->json([
+                'status' => 'success',
+                'msg'    => 'Verify token successful',
+                'token'  => $token,
+            ], 200);
+        } else {
+            return response()->json([
+                'status' => 'failed',
+                'msg'    => 'Verification token failed',
+            ], 200);
+        }
     }
 }
