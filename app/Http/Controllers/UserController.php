@@ -2,10 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Helper\JWTToken;
-use App\Mail\OTPMail;
-use App\Models\User;
 use Exception;
+use Carbon\Carbon;
+use App\Models\User;
+use App\Mail\OTPMail;
+use App\Helper\JWTToken;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 
@@ -90,30 +91,42 @@ class UserController extends Controller
         }
     }
 
-    public function verifyOTPCode(Request $request)
-    {
-        $email = $request->input('email');
-        $otp = $request->input('otp');
 
-        $count = User::where('email', $email)->where('otp', $otp)->count();
+public function verifyOTPCode(Request $request)
+{
+    $email = $request->input('email');
+    $otp = $request->input('otp');
 
-        if ($count == 1) {
-            USER::where('email', $email)->update(['otp' => "0"]);
+    // Check if the OTP is valid and hasn't expired
+    $user = User::where('email', $email)->where('otp', $otp)->first();
 
-            $token = JWTToken::createTokenForSetPassword($email);
+    if ($user && !$this->isOTPOutdated($user->updated_at)) {
+        // Mark the OTP as used
+        USER::where('email', $email)->update(['otp' => "0"]);
 
-            return response()->json([
-                'status' => 'success',
-                'msg'    => 'Verify token successful',
-                'token'  => $token,
-            ], 200);
-        } else {
-            return response()->json([
-                'status' => 'failed',
-                'msg'    => 'Verification token failed',
-            ], 200);
-        }
+        // Generate a token for setting the password
+        $token = JWTToken::createTokenForSetPassword($email);
+
+        return response()->json([
+            'status' => 'success',
+            'msg'    => 'Verify token successful',
+            'token'  => $token,
+        ], 200);
+    } else {
+        return response()->json([
+            'status' => 'failed',
+            'msg'    => 'Verification token failed',
+        ], 200);
     }
+}
+
+// Helper function to check if OTP is outdated
+private function isOTPOutdated($updatedAt)
+{
+    $expirationTime = Carbon::parse($updatedAt)->addMinutes(5);
+    return now()->gt($expirationTime);
+}
+
 
     public function resetPassword(Request $request)
     {
