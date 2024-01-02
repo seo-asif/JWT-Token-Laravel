@@ -16,7 +16,7 @@ use Illuminate\Support\Facades\Route;
  */
 
 Route::get('/', function () {
-    return view('email.otpmail');
+    return view('layout.sidenav-layout');
 });
 
 Route::post("/register", [UserController::class, 'registration'])->name('registration');
