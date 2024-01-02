@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use Exception;
-use Carbon\Carbon;
-use App\Models\User;
-use App\Mail\OTPMail;
 use App\Helper\JWTToken;
+use App\Mail\OTPMail;
+use App\Models\User;
+use Carbon\Carbon;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 
@@ -25,14 +25,14 @@ class UserController extends Controller
             User::create($request->input());
             return response()->json([
                 'status' => 'success',
-                'msg'    => 'user created successfully',
-            ], 201);
+                'msg'    => 'Registration successful',
+            ], );
         } catch (Exception $error) {
             return response()->json([
                 'status' => 'failed',
-                'msg'    => 'user registration Failed',
+                'msg'    => 'Registration Failed',
                 'reason' => $error->getMessage(),
-            ], 200);
+            ], );
         }
     }
 
@@ -46,16 +46,22 @@ class UserController extends Controller
                 $token = JWTToken::createToken($request->input('email'));
                 return response()->json([
                     'status' => 'success',
-                    'msg'    => "login successfull",
+                    'msg'    => "login successful",
                     'token'  => $token,
-                ]);
+                ], )->cookie('token', $token, 60 * 24 * 30, "/");
+            } else {
+                return response()->json([
+                    'status' => 'failed',
+                    'msg'    => "Invalid email or password",
+                ], );
+
             }
         } catch (Exception $error) {
             return response()->json([
                 'status' => 'failed',
-                'msg'    => "login unsuccessfull",
+                'msg'    => "Invalid email or password",
                 'reason' => $error->getMessage(),
-            ], 401);
+            ], );
         }
     }
 
@@ -91,42 +97,40 @@ class UserController extends Controller
         }
     }
 
+    public function verifyOTPCode(Request $request)
+    {
+        $email = $request->input('email');
+        $otp = $request->input('otp');
 
-public function verifyOTPCode(Request $request)
-{
-    $email = $request->input('email');
-    $otp = $request->input('otp');
+        // Check if the OTP is valid and hasn't expired
+        $user = User::where('email', $email)->where('otp', $otp)->first();
 
-    // Check if the OTP is valid and hasn't expired
-    $user = User::where('email', $email)->where('otp', $otp)->first();
+        if ($user && !$this->isOTPOutdated($user->updated_at)) {
+            // Mark the OTP as used
+            USER::where('email', $email)->update(['otp' => "0"]);
 
-    if ($user && !$this->isOTPOutdated($user->updated_at)) {
-        // Mark the OTP as used
-        USER::where('email', $email)->update(['otp' => "0"]);
+            // Generate a token for setting the password
+            $token = JWTToken::createTokenForSetPassword($email);
 
-        // Generate a token for setting the password
-        $token = JWTToken::createTokenForSetPassword($email);
-
-        return response()->json([
-            'status' => 'success',
-            'msg'    => 'Verify token successful',
-            'token'  => $token,
-        ], 200);
-    } else {
-        return response()->json([
-            'status' => 'failed',
-            'msg'    => 'Verification token failed',
-        ], 200);
+            return response()->json([
+                'status' => 'success',
+                'msg'    => 'Verify token successful',
+                'token'  => $token,
+            ], 200);
+        } else {
+            return response()->json([
+                'status' => 'failed',
+                'msg'    => 'Verification token failed',
+            ], );
+        }
     }
-}
 
 // Helper function to check if OTP is outdated
-private function isOTPOutdated($updatedAt)
-{
-    $expirationTime = Carbon::parse($updatedAt)->addMinutes(5);
-    return now()->gt($expirationTime);
-}
-
+    private function isOTPOutdated($updatedAt)
+    {
+        $expirationTime = Carbon::parse($updatedAt)->addMinutes(5);
+        return now()->gt($expirationTime);
+    }
 
     public function resetPassword(Request $request)
     {

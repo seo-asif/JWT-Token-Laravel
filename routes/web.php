@@ -19,10 +19,16 @@ Route::get('/', function () {
     return view('layout.sidenav-layout');
 });
 
-Route::post("/register", [UserController::class, 'registration'])->name('registration');
-Route::post("/login", [UserController::class, 'login'])->name('login');
-Route::post("/send-otp", [UserController::class, 'sendOTPCode'])->name('send.otp');
-Route::post("/verify-otp", [UserController::class, 'verifyOTPCode'])->name('verify.otp');
+//Web Rest API
+Route::post("/user-register", [UserController::class, 'registration']);
+Route::post("/user-login", [UserController::class, 'login'])->middleware([TokenVerificationMiddleware::class]);
+Route::post("/send-otp", [UserController::class, 'sendOTPCode']);
+Route::post("/verify-otp", [UserController::class, 'verifyOTPCode']);
+Route::post("/reset-password", [UserController::class, 'resetPassword'])->middleware([TokenVerificationMiddleware::class]);
 
-//Verify Token
-Route::post("/reset-password", [UserController::class, 'resetPassword'])->name('reset.password')->middleware([TokenVerificationMiddleware::class]);
+Route::get('/login', function () {
+    return view('pages.auth.login-page');
+});
+Route::get('/registration', function () {
+    return view('pages.auth.registration-page');
+});
