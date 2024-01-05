@@ -30,42 +30,15 @@
 
 
             if (res.status === 200 && res.data['status'] === 'success') {
-                successToast(res.data['message'])
+                successToast(res.data['msg'])
                 sessionStorage.clear();
                 setTimeout(() => {
-                    window.location.href = '/resetPassword'
+                    window.location.href = '/resetpassword'
                 }, 1000);
             } else {
                 errorToast(res.data['msg']);
             }
         }
 
-    }
-
-
-
-
-    async function ttVerifyOtp() {
-        let otp = document.getElementById('otp').value;
-        if (otp.length !== 4) {
-            errorToast('Invalid OTP')
-        } else {
-            showLoader();
-            let res = await axios.post('/verify-otp', {
-                otp: otp,
-                email: sessionStorage.getItem('email')
-            })
-            hideLoader();
-
-            if (res.status === 200 && res.data['status'] === 'success') {
-                successToast(res.data['message'])
-                sessionStorage.clear();
-                setTimeout(() => {
-                    window.location.href = '/resetPassword'
-                }, 1000);
-            } else {
-                errorToast(res.data['message'])
-            }
-        }
     }
 </script>
