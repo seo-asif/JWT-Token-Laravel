@@ -72,10 +72,10 @@ class UserController extends Controller
     {
 
         try {
-            $count = User::where('email', $request->input('email'))->count();
+            $count = User::where('email', $request->input('email'))->where('password', $request->input('password'))->first();
 
-            if ($count == 1) {
-                $token = JWTToken::createToken($request->input('email'));
+            if ($count !== null) {
+                $token = JWTToken::createToken($request->input('email'), $count->id);
                 return response()->json([
                     'status' => 'success',
                     'msg'    => "login successful",
@@ -187,4 +187,10 @@ class UserController extends Controller
             ], 500);
         }
     }
+
+    public function userLogout()
+    {
+        return redirect("/login")->cookie('token', "", -1);
+    }
+
 }
