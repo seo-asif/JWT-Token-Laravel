@@ -21,14 +21,13 @@ Route::get('/', function () {
 
 //Web Rest API
 Route::post("/user-register", [UserController::class, 'registration']);
-Route::post("/user-login", [UserController::class, 'login'])->middleware([TokenVerificationMiddleware::class]);
+Route::post("/user-login", [UserController::class, 'login']);
 Route::post("/send-otp", [UserController::class, 'sendOTPCode']);
 Route::post("/verify-otp", [UserController::class, 'verifyOTPCode']);
 Route::post("/reset-password", [UserController::class, 'resetPassword'])->middleware([TokenVerificationMiddleware::class]);
 
-Route::get('/login', function () {
-    return view('pages.auth.login-page');
-});
-Route::get('/registration', function () {
-    return view('pages.auth.registration-page');
-});
+Route::get('/login', [UserController::class, 'loginPage']);
+Route::get('/registration', [UserController::class, 'registrationPage']);
+Route::get('/sendotp', [UserController::class, 'sendOtpPage']);
+Route::get('/verifyotp', [UserController::class, 'verifyOTPPage']);
+Route::get('/resetpassword', [UserController::class, 'resetPasswordPage'])->middleware([TokenVerificationMiddleware::class]);

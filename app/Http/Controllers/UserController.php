@@ -7,11 +7,43 @@ use App\Mail\OTPMail;
 use App\Models\User;
 use Carbon\Carbon;
 use Exception;
+use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 
 class UserController extends Controller
 {
+
+    public function loginPage(): View
+    {
+        return view('pages.auth.login-page');
+    }
+
+    public function registrationPage(): View
+    {
+        return view('pages.auth.registration-page');
+    }
+
+    public function sendOtpPage(): View
+    {
+        return view('pages.auth.send-otp-page');
+    }
+
+    public function verifyOTPPage(): View
+    {
+        return view('pages.auth.verify-otp-page');
+    }
+
+    public function resetpasswordPage(): View
+    {
+        return view('pages.auth.reset-pass-page');
+    }
+
+    public function profilePage(): View
+    {
+        return view('pages.dashboard.profile-page');
+    }
+
     public function registration(Request $request)
     {
 
@@ -81,19 +113,19 @@ class UserController extends Controller
                     'msg'    => 'OTP send successfully',
                     'otp'    => $otp,
 
-                ], 200);
+                ], );
             } else {
                 return response()->json([
                     'status' => 'failed',
                     'msg'    => 'User with the provided email not found.',
-                ], 200);
+                ], );
             }
         } catch (Exception $error) {
             return response()->json([
                 'status' => 'failed',
                 'msg'    => 'OTP send Failed',
                 'reason' => $error->getMessage(),
-            ], 200);
+            ], );
         }
     }
 

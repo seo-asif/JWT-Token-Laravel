@@ -41,11 +41,11 @@
                 errorToast('Password should be more than 3 characters');
             } else {
                 showLoader();
-                let postBody = {
+
+                let res = await axios.post("/user-login", {
                     email: email,
                     password: password
-                }
-                let res = await axios.post("/user-login", postBody);
+                });
                 hideLoader();
 
                 if (res.status === 200 && res.data['status'] == 'success') {
